@@ -37,9 +37,22 @@ v0.1.3r1 26 July -- Minor plotting changes and shell command-line features
     - zorder of parcel plot set to plot beneath tc/td trace but above text 
       labels
     - shell command invocation: 
-	- python SkewT.py does the two examples from the "examples" 
+	- "python SkewT.py" does the two examples from the "examples" 
 	  directory
-	- python SkewT.py example does the same thing
-	- python SkewT.py path/to/soundingfile.txt makes a skewt plot of the 
-	  sounding in soundingfile
+	- "python SkewT.py example" does the same thing
+	- "python SkewT.py path/to/soundingfile.txt" makes a skewt plot of 
+	  the sounding in soundingfile, provided it confirms to the UWyo 
+	  format
+
+v0.1.4 20 Feb 2014 --New diagnostics and minor plotting changes.
+    - Replaced "273.15" with thermodynamics.degCtoK
+    - Added a precipitable water diagnostic on request from Doug Miller! 
+      please feel free to request others, or even better, write your own.
+
+v0.1.4r1 20 Feb 2014 --New diagnostics and minor plotting changes.
+    - Trying to get examples uploaded. 
+
+v0.1.4r2 20 Feb 2014 --New diagnostics and minor plotting changes.
+    - fixed bug in readfile. Changed routine name to uwyofile
+    
 

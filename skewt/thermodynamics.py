@@ -14,7 +14,7 @@ Cv_da=719.            # Specific heat at constant volume for dry air
 Cp_v=1870.            # Specific heat at constant pressure for water vapour
 Cv_v=1410.            # Specific heat at constant volume for water vapour
 Cp_lw=4218	      # Specific heat at constant pressure for liquid water
-Epsilon=0.622         # Epsilon=R_s_da/R_s_v; The ratio of the gas constants
+Epsilon=0.622         # Epsilon=Rs_da/Rs_v; The ratio of the gas constants
 degCtoK=273.15        # Temperature offset between K and C (deg C)
 rho_w=1000.           # Liquid Water density kg m^{-3}
 grav=9.81             # Gravity, m s^{-2}
@@ -113,8 +113,39 @@ def GammaW(tempk,pres,e=None):
     Gamma=(A/B)/(Cp_da*Rho)
     return Gamma
 
+def DensityHumid(tempk,pres,e):
+    """Density of moist air.
+    This is a bit more explicit ant less confusing than the method below.
+
+    INPUTS:
+    tempk: Temperature (K)
+    pres: static pressure (Pa)
+    mixr: mixing ratio (kg/kg)
+
+    OUTPUTS: 
+    rho_air (kg/m^3)
+
+    SOURCE: http://en.wikipedia.org/wiki/Density_of_air
+    """
+
+    pres_da=pres-e
+    rho_da=pres_da/(Rs_da*tempk)
+    rho_wv=e/(Rs_v*tempk)
+
+    return rho_da+rho_wv
+
+
 def Density(tempk,pres,mixr):
-    """Density of moist air"""
+    """Density of moist air
+
+    INPUTS:
+    tempk: Temperature (K)
+    pres: static pressure (Pa)
+    mixr: mixing ratio (kg/kg)
+
+    OUTPUTS: 
+    rho_air (kg/m^3)
+    """
     
     virtualT=VirtualTempFromMixR(tempk,mixr)
     return pres/(Rs_da*virtualT)

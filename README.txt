@@ -33,22 +33,52 @@ degrees WDIR. Other fields may be included as per the docstring::
     sounding = SkewT.Sounding(data=data_dict)
     sounding.plot_skewt(color='r',lw=2)
 
+One thing on my to-do list is to make the package a bit more user-friendly 
+in that it will accept one of a number of moisture fields (e.g. dew-point 
+temperature relative humidity, mixing ratio or vapour partial pressure) and 
+fill in the others for you. For any moisture calculations, the module looks 
+for DWPT, and if it's not there it complains.
+
 News
 ====
-Simon Caine is now on board as a developer! We look forward to a bunch of 
-exciting improvements from this Guru of Python/Atmos.
-
 Thanks for your interest in this package and I'd love to hear your feedback: 
 thomas.chubb AT monash.edu
 
-Here's a summary of what's new in this release:
+Here's a summary of what's new in Version 0.1.4:
 
-* Added an automatic parcel initialisation routine to facilitate parcel 
-  ascent routine.
-* Bug-fix: There was an error thrown if the input data wasn't masked arrays. 
-  This must have been really annoying... Sorry, and thanks Simon for 
-  pointing this out. You wouldn't have noticed if you were reading text 
-  files because the Sounding.readfile() method returns masked arrays.
+* (Version 0.1.4r2) Bug fix in readfile. A long time ago I decided to ignore 
+  the diagnostics at the end of the University of Wyoming sounding files by 
+  chopping the last 34 lines from the file, so when a file containing only 
+  the raw data was used, it was truncated half-way up. This has been 
+  replaced by a routine that checks for valid pressure data in the right 
+  place.
+
+* A major-ish change to the layout. I'm planning on adding more diagnostics 
+  as time goes by so I decided to get the test from the parcel and the 
+  column diagnostics out of the plot area.
+
+* The new release contains a diagnostic for Total Precipitable Water (TPW). 
+  This is simply the total column-integrated water vapour, based on mixing 
+  ratio derived from DWPT. It uses a trapezoidal approximation for 
+  integration and gives values within about one percent of the values in the 
+  UWyo text files (I have no idea how UWyo do their diagnostic). More 
+  diagnostics to come!
+
+
+Regarding the Examples in the Tarball
+=====================================
+Unfortunately, If you pip install this package I don't think you get the 
+examples that are in the tarball (see the big green "Downloads" button?). In 
+any case using the __main__ invocation (i.e. python SkewT.py) doesn't really 
+make sense when you have SkewT.py installed in a system directory. The very 
+easiest way to run the examples would be as per the typical usage above 
+(e.g. in IPython) after having downloaded one of the example sounding files 
+and placed it in you current directory. 
+
+Alternatively, I have uploaded them as a separate file with a short script 
+to run and show the output. Look for skewt_examples.tar.gz under 
+"Downloads".
+
 
 Sounding Files
 ==============
@@ -83,8 +113,8 @@ pressure, temperature and dew point temperature. You could do it like this::
     sounding.lift_parcel(1004.,17.4,8.6)
     draw()
 
-Automatic Parcel Definition (New in version 0.1.3!)
----------------------------------------------------
+Automatic Parcel Definition
+--------------------------- 
 You can still manually input a parcel as in the example above, but there is 
 a new routine to automagically define a parcel from the sounding itself. You 
 define a layer depth that you would like to characterise (say 100mb). The 
@@ -116,24 +146,30 @@ for your convenience, so all of the above can be condensed with::
 
 To-Do List
 ==========
-* The Sounding.readfile() routine is a bit of a mess.
+* More diagnostics.
 
-* I want to do some basic diagnostics given the lifted parcel. This 
-  shouldn't be hard it's just that I have more pressing things to do. If 
-  anybody out there wants to adapt/contribute routines that they have I'd be 
-  most grateful. Send your fan/hate mail to thomas.chubb AT monash.edu
+* The Sounding.readfile() routine is much smarter now.
 
-* Hodographs?
+* User-friendly moisture variable handling. At the moment it's best to just 
+  make sure that you include DWPT.
+
+* Hodographs? Anyone? 
 
 Contributors
 ==============
+* Simon Caine.
 
-* Simon Caine is the latest recruit (yay)
-
-* Hamish Ramsay has promised to at least think about adding some extra 
-  diagnostics.
+* Hamish Ramsay (Monash) has promised to at least think about adding some 
+  extra diagnostics.
 
 * The initial SkewX classes were provided by a fellow called Ryan May who 
   was a student at OU. I have not made contact with Ryan other than to 
   download his scripts and modify them for my own purposes.
+
+Thanks Also
+===========
+* Thanks to Douglas Miller of UNC-Asheviller, who prompted me to get the TPW 
+  routine up for a class exercise (yay!), and is checking for more bugs.
+
+
 
