@@ -10,16 +10,16 @@ from matplotlib.projections import register_projection
 from matplotlib.pyplot import rcParams,figure,show,draw
 from matplotlib.ticker import MultipleLocator, FormatStrFormatter
 
-from thermodynamics import VirtualTemp,Latentc,SatVap,MixRatio,GammaW,\
+
+from skewt.thermodynamics import VirtualTemp,Latentc,SatVap,MixRatio,GammaW,\
     VirtualTempFromMixR,MixR2VaporPress,DewPoint,Theta,TempK,Density,DensityHumid
-from thermodynamics import Rs_da, Cp_da, Epsilon,degCtoK
+from skewt.thermodynamics import Rs_da, Cp_da, Epsilon,degCtoK
 
 
 from UserDict import UserDict
 from datetime import datetime
 import os,sys
 
-__version__="0.1.4r2"
 
 class SkewXTick(maxis.XTick):
     #Copyright (c) 2008 Ryan May
