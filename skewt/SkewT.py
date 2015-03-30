@@ -19,6 +19,7 @@ from skewt.thermodynamics import Rs_da, Cp_da, Epsilon,degCtoK
 from UserDict import UserDict
 from datetime import datetime
 import os,sys
+import warnings
 
 
 class SkewXTick(maxis.XTick):
@@ -303,14 +304,20 @@ class Sounding(UserDict):
             if not data.has_key("StationNumber"):
                 self["StationNumber"]="(no number)"
 
-    def plot_skewt(self, imagename=None, title=None, **kwargs):
+    def plot_skewt(self, imagename=None, title=None, fig=None, **kwargs):
         """A wrapper for plotting the skewt diagram for a Sounding instance."""
         
-        self.make_skewt_axes()
+        self.make_skewt_axes(fig=fig)
         self.add_profile(**kwargs)
-        parcel=self.surface_parcel()
-        self.lift_parcel(*parcel)
-        self.column_diagnostics()
+        try:
+            parcel=self.surface_parcel()
+            self.lift_parcel(*parcel)
+        except KeyError as e:
+            warnings.warn('%s' % e)
+        try:
+            self.column_diagnostics()
+        except KeyError as e:
+            warnings.warn('%s' % e)
 
         if isinstance(title, str):
             self.skewxaxis.set_title(title)
@@ -318,8 +325,28 @@ class Sounding(UserDict):
             self.skewxaxis.set_title("%s %s"%(self["StationNumber"],self['SoundingDate']))
 
         if imagename is not None:
-            print("saving figure")
             self.fig.savefig(imagename,dpi=100)
+
+    def add_points(self, xpoints, ypoints, **kwargs):
+        if 'marker' in kwargs:
+            marker = kwargs.pop('marker')
+        else:
+            marker = 'o'
+
+        if 'color' in kwargs:
+            color = kwargs.pop('color')
+        else:
+            color = 'red'
+
+        if 'zorder' in kwargs:
+            zorder = kwargs.pop('zorder')
+        else:
+            zorder = 10
+
+        self.skewxaxis.plot(xpoints, ypoints, marker=marker, color=color, 
+                            zorder=zorder, **kwargs)
+        return self.fig
+
 
     def add_profile(self,**kwargs):
         """Add a new profile to the SkewT plot.
@@ -362,8 +389,9 @@ class Sounding(UserDict):
         try: 
             dwpt=ma.masked_invalid(self.data['dwpt'])
         except KeyError:
-            print "Warning: No DWPT available"
+            warnings.warn("Warning: No DWPT available")
             dwpt=ma.masked_array(zeros(pres.shape),mask=True)
+            
 
         try:
             sknt=self.data['sknt']
@@ -372,7 +400,7 @@ class Sounding(UserDict):
             uu = ma.masked_invalid(sknt*cos(rdir))
             vv = ma.masked_invalid(sknt*sin(rdir))
         except KeyError:
-            print "Warning: No SKNT/DRCT available"
+            warnings.warn("Warning: No SKNT/DRCT available")
             uu=ma.masked_array(zeros(pres.shape),mask=True)
             vv=ma.masked_array(zeros(pres.shape),mask=True)
 
@@ -402,12 +430,76 @@ class Sounding(UserDict):
 
         return tcprof
 
-    def make_skewt_axes(self,pmax=1050.,pmin=100.):
+    def init_profile_plot(self, fig=None, **kwargs):
+        if 'marker' in kwargs:
+            marker = kwargs.pop('marker')
+        else:
+            marker = 'o'
+
+        if 'color' in kwargs:
+            color = kwargs.pop('color')
+        else:
+            color = 'red'
+
+        if 'zorder' in kwargs:
+            zorder = kwargs.pop('zorder')
+        else:
+            zorder = 10
+
+        self.make_skewt_axes(fig=fig)
+        self.wind_pts = self.skewxaxis.plot([],[], marker=marker, color=color, 
+                                            zorder=zorder, **kwargs)[0]
+        self.plt_title = self.skewxaxis.set_title('')
+        self.tcprof_line = self.skewxaxis.plot([],[], zorder=5,**kwargs)[0]
+        self.dpprof_line = self.skewxaxis.plot([],[], zorder=5,**kwargs)[0]
+
+        return self.tcprof_line,self.dpprof_line,self.plt_title,self.wind_pts
+
+    def set_profile_data(self, pts=[[],[]]):
+        try: 
+            pres = ma.masked_invalid(self.data['pres'])
+        except KeyError: 
+            raise KeyError, "Pres in hPa (PRES) is required!"
+
+        try: 
+            tc=ma.masked_invalid(self.data['temp'])
+        except KeyError: 
+            raise KeyError, "Temperature in C (TEMP) is required!"
+
+        try: 
+            dwpt=ma.masked_invalid(self.data['dwpt'])
+        except KeyError:
+            warnings.warn("Warning: No DWPT available")
+            dwpt=ma.masked_array(zeros(pres.shape),mask=True)
+            
+
+        try:
+            sknt=self.data['sknt']
+            drct=self.data['drct']
+            rdir = (270.-drct)*(pi/180.)
+            uu = (sknt*cos(rdir))
+            vv = (sknt*sin(rdir))
+        except KeyError:
+            warnings.warn("Warning: No SKNT/DRCT available")
+            uu=zeros(pres.shape)
+            vv=zeros(pres.shape)
+
+        self.tcprof_line.set_data(tc, pres)
+        self.dpprof_line.set_data(dwpt, pres)
+        self.plt_title.set_text("%s %s"%(self["StationNumber"],self['SoundingDate']))
+        self.wind_pts.set_data(*zip(*pts))
+
+        return self.tcprof_line,self.dpprof_line,self.plt_title,self.wind_pts
+
+
+    def make_skewt_axes(self,pmax=1050.,pmin=100., fig=None):
         """Set up the skew-t axis the way I like to see it"""
         
-        self.fig = figure(figsize=(8,8))
+        if fig is None:
+            self.fig = figure(figsize=(8,8))
+        else:
+            self.fig = fig
         self.fig.clf()
-        
         rcParams.update({\
             'font.size':10,\
             })
@@ -462,6 +554,7 @@ class Sounding(UserDict):
         self.fthax.get_yaxis().set_tick_params(which="both",direction='out')
         self.fthax.yaxis.set_major_locator(majorLocatorKFT)
         self.fthax.yaxis.set_minor_locator(minorLocator)
+        return self.skewxaxis,self.wbax
 
     def uwyofile(self,fname):
         """Reads the raw profile data from a Universiy of Wyoming sounding file.
@@ -580,7 +673,7 @@ class Sounding(UserDict):
         try:
             dwptc=self['dwpt']
         except KeyError:
-            print "Warning: No MIXR or DWPT for TPW calculation"
+            warnings.warn( "Warning: No MIXR or DWPT for TPW calculation")
             return -999.
         vprespa=SatVap(dwptc)
         mixrkg=MixRatio(vprespa,prespa)
@@ -607,7 +700,7 @@ class Sounding(UserDict):
         try:
             assert startt>startdp
         except AssertionError:
-            print "Warning: Not a valid parcel. Check Td<Tc"
+            warnings.warn("Warning: Not a valid parcel. Check Td<Tc")
             return
 
         Pres=linspace(startp,100,100)
@@ -679,7 +772,7 @@ class Sounding(UserDict):
         try:
             dwpt=self.data["dwpt"]
         except KeyError:
-            print "Unable to calculate surface parcel characteristics without dwpt"
+            warnings.warn("Unable to calculate surface parcel characteristics without dwpt")
             return (pres[0], temp[0], 1e20)
 
         # identify the layers for averaging

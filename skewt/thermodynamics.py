@@ -1,4 +1,5 @@
 from numpy import interp,pi,cos,sin,arctan2,sqrt,linspace,min,exp,log,where
+import warnings                  
 
 #-----------------------------------------------------------------------
 # Here we go. A set of functions that I use from time to time to calculate 
@@ -38,14 +39,14 @@ def Theta(tempk,pres,pref=100000.):
     Prints a warning if a pressure value below 2000 Pa input, to ensure
     that the units were input correctly.
     """
-
+    
     try:
 	minpres=min(pres)
-    except TypeError:
+    except TypeError as e:
 	minpres=pres
 
     if minpres<2000:
-	print "WARNING: P<2000 Pa; did you input a value in hPa?"
+	warnings.warn("WARNING: P<2000 Pa; did you input a value in hPa?")
 
     return tempk*(pref/pres)**(Rs_da/Cp_da)
 
@@ -58,7 +59,7 @@ def TempK(theta,pres,pref=100000.):
 	minpres=pres
 
     if minpres<2000:
-	print "WARNING: P<2000 Pa; did you input a value in hPa?"
+	warnings.warn("WARNING: P<2000 Pa; did you input a value in hPa?")
 
     return theta*(pres/pref)**(Rs_da/Cp_da)
 
@@ -259,8 +260,6 @@ def MixR2VaporPress(qv,p):
 
     return qv*p/(Epsilon+qv)
 
-
-
 def VaporPressure(dwpt):
     """Water vapor pressure
     INPUTS
@@ -287,5 +286,4 @@ def DewPoint(e):
     ln_ratio=log(e/611.2)
     Td=((17.67-ln_ratio)*degCtoK+243.5*ln_ratio)/(17.67-ln_ratio)
     return Td-degCtoK
-
 
