@@ -404,8 +404,8 @@ class Sounding(UserDict):
             uu=ma.masked_array(zeros(pres.shape),mask=True)
             vv=ma.masked_array(zeros(pres.shape),mask=True)
 
-        tcprof=self.skewxaxis.plot(tc, pres, zorder=5,**kwargs)
-        dpprof=self.skewxaxis.plot(dwpt, pres, zorder=5,**kwargs)
+        tcprof=self.skewxaxis.plot(tc, pres, zorder=5, label='Temperature', **kwargs)
+        dpprof=self.skewxaxis.plot(dwpt, pres, zorder=5,label='Dewpoint',**kwargs)
 
         # this line should no longer cause an exception
         nbarbs=(~uu.mask).sum()
